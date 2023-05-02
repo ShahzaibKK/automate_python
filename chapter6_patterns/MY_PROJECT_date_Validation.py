@@ -35,3 +35,5 @@ for v_date in mo:
 if len(catch_correct_date) > 0:
     pyperclip.copy("\n".join(catch_correct_date))
     print("copied")
+else:
+    print("Fisrt Copy some dates bro")

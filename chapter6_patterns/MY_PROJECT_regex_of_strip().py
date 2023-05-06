@@ -9,4 +9,4 @@ def strip_it(s, arug=None):
     return re.sub(pattern, "", s)
 
 
-print(strip_it("  i love you !  ", "love"))
+print(strip_it("  i love you !  "))

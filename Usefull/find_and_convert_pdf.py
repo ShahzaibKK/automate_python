@@ -1,6 +1,6 @@
 import tkinter as tk
-from tkinter import filedialog
-from tkinter import messagebox
+from tkinter import filedialog, messagebox
+from tkinter import ttk
 import shutil
 import os
 from openpyxl import load_workbook
@@ -8,6 +8,7 @@ from PIL import Image
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import datetime
+import threading
 
 
 def browse_source_folder():
@@ -59,85 +60,111 @@ def create_pdf(image_paths, output_path):
     pdf_canvas.save()
 
 
+# Updated copy_files function with loading bar
 def copy_files():
-    source_folder = source_folder_entry.get()
-    destination_folder = destination_folder_entry.get()  # Add this line
-    excel_file = excel_file_entry.get()
+    progress = tk.DoubleVar()
 
-    if source_folder == "" or destination_folder == "" or excel_file == "":
-        messagebox.showerror("Error", "Please provide all the required information.")
-        return
+    def perform_copy():
+        source_folder = source_folder_entry.get()
+        destination_folder = destination_folder_entry.get()
+        excel_file = excel_file_entry.get()
 
-    # Define the destination folder for compressed images
-    compressed_images_folder = os.path.join(destination_folder, "compressed_images")
-    os.makedirs(compressed_images_folder, exist_ok=True)
+        if source_folder == "" or destination_folder == "" or excel_file == "":
+            messagebox.showerror(
+                "Error", "Please provide all the required information."
+            )
+            return
 
-    missing_files = set()  # Store missing file names
+        # Define the destination folder for compressed images
+        compressed_images_folder = os.path.join(destination_folder, "compressed_images")
+        os.makedirs(compressed_images_folder, exist_ok=True)
 
-    try:
-        workbook = load_workbook(excel_file)
-        sheet = workbook.active
-        column = sheet["A"]
+        missing_files = set()  # Store missing file names
 
-        # Create a set to store the filenames of compressed images
-        compressed_filenames = set()
-        # Create a list to store the paths of compressed images
-        compressed_image_paths = []
+        try:
+            workbook = load_workbook(excel_file)
+            sheet = workbook.active
+            column = sheet["A"]
 
-        for cell in column:
-            if cell.value is not None:
-                filename = str(cell.value).strip()
-                source_path = os.path.join(source_folder, f"{filename}.jpg")
+            # Create a set to store the filenames of compressed images
+            compressed_filenames = set()
+            # Create a list to store the paths of compressed images
+            compressed_image_paths = []
 
-                if os.path.exists(source_path):
-                    # Check if the image has already been compressed
-                    if filename in compressed_filenames:
-                        log_text.insert(
-                            tk.END, f"Image already compressed: {filename}.jpg\n"
-                        )
+            total_files = len(column)
+            processed_files = 0
+
+            # Create the loading bar
+            loading_bar = ttk.Progressbar(
+                window, length=500, mode="determinate", variable=progress
+            )
+            loading_bar.pack()
+
+            for cell in column:
+                if cell.value is not None:
+                    filename = str(cell.value).strip()
+                    source_path = os.path.join(source_folder, f"{filename}.jpg")
+
+                    if os.path.exists(source_path):
+                        # Check if the image has already been compressed
+                        if filename in compressed_filenames:
+                            log_text.insert(
+                                tk.END, f"Image already compressed: {filename}.jpg\n"
+                            )
+                        else:
+                            # Compress the image and save it to a file
+                            compressed_image_path = compress_image(
+                                source_path, compressed_images_folder
+                            )
+                            compressed_image_paths.append(compressed_image_path)
+                            compressed_filenames.add(filename)
+
+                            log_text.insert(
+                                tk.END, f"Image compressed: {filename}.jpg\n"
+                            )
                     else:
-                        # Compress the image and save it to a file
-                        compressed_image_path = compress_image(
-                            source_path, compressed_images_folder
+                        log_text.insert(
+                            tk.END, f"File not found: {filename}.jpg\n", "failed"
                         )
-                        compressed_image_paths.append(compressed_image_path)
-                        compressed_filenames.add(filename)
+                        missing_files.add(filename)
 
-                        log_text.insert(tk.END, f"Image compressed: {filename}.jpg\n")
-                else:
-                    log_text.insert(
-                        tk.END, f"File not found: {filename}.jpg\n", "failed"
-                    )
-                    missing_files.add(filename)
+                    log_text.see(tk.END)  # Scroll to the end of the text
+                    log_text.update_idletasks()  # Force an update of the GUI
 
-                log_text.see(tk.END)  # Scroll to the end of the text
-                log_text.update_idletasks()  # Force an update of the GUI
+                    processed_files += 1
+                    progress_value = (processed_files / total_files) * 100
+                    progress.set(progress_value)
+                    loading_bar.update()
 
-        # Generate the compressed PDF file
-        current_date = datetime.date.today()
-        formatted_date = current_date.strftime("%d-%m-%Y")
-        output_pdf_path = os.path.join(
-            destination_folder, f"Available_Stock_{formatted_date}.pdf"
+            # Generate the compressed PDF file
+            current_date = datetime.date.today()
+            formatted_date = current_date.strftime("%d-%m-%Y")
+            output_pdf_path = os.path.join(
+                destination_folder, f"Available_Stock_{formatted_date}.pdf"
+            )
+            create_pdf(compressed_image_paths, output_pdf_path)
+            log_text.insert(
+                tk.END, "PDF file generated: compressed_images.pdf\n", "success"
+            )
+
+            # Save missing file names to a text file
+            missing_file_path = os.path.join(destination_folder, "missing_files.txt")
+            with open(missing_file_path, "w") as f:
+                for file_name in missing_files:
+                    f.write(file_name + "\n")
+
+            log_text.insert(
+                tk.END, f"Missing file names saved to: {missing_file_path}\n", "success"
+            )
+
+        except Exception as e:
+            messagebox.showerror("Error", f"An error occurred: {str(e)}")
+
+        messagebox.showinfo(
+            "Success", "Image compression and PDF generation completed."
         )
-        create_pdf(compressed_image_paths, output_pdf_path)
-        log_text.insert(
-            tk.END, "PDF file generated: compressed_images.pdf\n", "success"
-        )
 
-        # Save missing file names to a text file
-        missing_file_path = os.path.join(destination_folder, "missing_files.txt")
-        with open(missing_file_path, "w") as f:
-            for file_name in missing_files:
-                f.write(file_name + "\n")
-
-        log_text.insert(
-            tk.END, f"Missing file names saved to: {missing_file_path}\n", "success"
-        )
-
-    except Exception as e:
-        messagebox.showerror("Error", f"An error occurred: {str(e)}")
-
-    messagebox.showinfo("Success", "Image compression and PDF generation completed.")
+    threading.Thread(target=perform_copy).start()
 
 
 # Create the main window

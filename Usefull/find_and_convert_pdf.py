@@ -9,6 +9,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import datetime
 import threading
+from ttkthemes import ThemedTk  # Import the ThemedTk class
 
 
 def browse_source_folder():
@@ -167,8 +168,8 @@ def copy_files():
     threading.Thread(target=perform_copy).start()
 
 
-# Create the main window
-window = tk.Tk()
+# Create the main window using ThemedTk
+window = ThemedTk(theme="equilux")  # Use the "equilux" theme
 window.title("File Copying Tool")
 window.geometry("600x500")  # Set the window size
 

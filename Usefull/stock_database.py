@@ -39,7 +39,9 @@ def update_stock_from_sales(stock_file_path, sales_file_path):
         )
 
         # Save the updated stock report to a new Excel file
-        updated_stock_file_path = f"updated_stock_report{datetime.date.today()}.xlsx"
+        updated_stock_file_path = (
+            f"updated_stock_report{datetime.date.today().strftime('%d-%m-%Y')}.xlsx"
+        )
         updated_stock_data.to_excel(updated_stock_file_path, index=False)
 
         messagebox.showinfo("Success", "Stock quantities updated successfully.")

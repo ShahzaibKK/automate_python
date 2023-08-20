@@ -8,10 +8,12 @@ from pathlib import Path
 """First i make 10 file using this Script like a pro"""
 p = Path("D:\Spam_folder")
 number = 0
-if len(os.listdir(p)) < 1:
-    while len(os.listdir(p)) < 10:
-        Path.write_text(p / f"spam_0{number}.txt", "")
-        number += 1
+if not p.exists():
+    p.mkdir()
+    if len(os.listdir(p)) < 1:
+        while len(os.listdir(p)) < 10:
+            Path.write_text(p / f"spam_0{number}.txt", "")
+            number += 1
 name_regex = re.compile(r"(spam_0)(\d)(\.txt)")
 file_number = []
 for file in os.listdir(p):

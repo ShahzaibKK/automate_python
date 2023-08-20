@@ -95,12 +95,19 @@ def copy_files():
             total_files = len(column)
             processed_files = 0
 
+            def update_loading_bar():
+                nonlocal processed_files
+                progress_value = (processed_files / total_files) * 100
+                progress.set(progress_value)
+                loading_bar.update()
+
             # Create the loading bar
             loading_bar = ttk.Progressbar(
                 window, length=500, mode="determinate", variable=progress
             )
             loading_bar.pack()
 
+            # Iterate through the images in the source folder
             for cell in column:
                 if cell.value is not None:
                     filename = str(cell.value).strip()
@@ -113,16 +120,27 @@ def copy_files():
                                 tk.END, f"Image already compressed: {filename}.jpg\n"
                             )
                         else:
-                            # Compress the image and save it to a file
-                            compressed_image_path = compress_image(
-                                source_path, compressed_images_folder
+                            # Check if the compressed image already exists
+                            compressed_image_path = os.path.join(
+                                compressed_images_folder, f"compressed_{filename}.jpg"
                             )
-                            compressed_image_paths.append(compressed_image_path)
-                            compressed_filenames.add(filename)
-
-                            log_text.insert(
-                                tk.END, f"Image compressed: {filename}.jpg\n"
-                            )
+                            if os.path.exists(compressed_image_path):
+                                log_text.insert(
+                                    tk.END,
+                                    f"Compressed image already exists: {filename}.jpg\n",
+                                )
+                                compressed_image_paths.append(compressed_image_path)
+                                compressed_filenames.add(filename)
+                            else:
+                                # Compress the image and save it to a file
+                                compressed_image_path = compress_image(
+                                    source_path, compressed_images_folder
+                                )
+                                compressed_image_paths.append(compressed_image_path)
+                                compressed_filenames.add(filename)
+                                log_text.insert(
+                                    tk.END, f"Image compressed: {filename}.jpg\n"
+                                )
                     else:
                         log_text.insert(
                             tk.END, f"File not found: {filename}.jpg\n", "failed"
@@ -133,9 +151,7 @@ def copy_files():
                     log_text.update_idletasks()  # Force an update of the GUI
 
                     processed_files += 1
-                    progress_value = (processed_files / total_files) * 100
-                    progress.set(progress_value)
-                    loading_bar.update()
+                    update_loading_bar()
 
             # Generate the compressed PDF file
             current_date = datetime.date.today()
@@ -214,6 +230,12 @@ log_text.tag_configure(
 log_text.tag_configure(
     "failed", foreground="red"
 )  # Set the text color for failed messages
+
+# My Name
+name_label = tk.Label(
+    window, text="Created by: Shahzaib KK +92 336 8311100", font=("Arial", 12)
+)
+name_label.pack()
 
 # Start the main loop
 window.mainloop()

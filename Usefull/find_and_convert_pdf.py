@@ -10,6 +10,7 @@ from reportlab.pdfgen import canvas
 import datetime
 import threading
 from ttkthemes import ThemedTk  # Import the ThemedTk class
+import time
 
 
 def browse_source_folder():
@@ -153,12 +154,27 @@ def copy_files():
                     processed_files += 1
                     update_loading_bar()
 
+            # Display message before generating PDF
+            log_text.insert(tk.END, "Creating PDF")
+            log_text.see(tk.END)
+            log_text.update_idletasks()
+
             # Generate the compressed PDF file
             current_date = datetime.date.today()
             formatted_date = current_date.strftime("%d-%m-%Y")
             output_pdf_path = os.path.join(
                 destination_folder, f"Available_Stock_{formatted_date}.pdf"
             )
+
+            # Add moving dots animation while generating PDF
+            for _ in range(5):  # Control the number of dots
+                log_text.insert(tk.END, ".")
+                log_text.see(tk.END)
+                log_text.update_idletasks()
+                time.sleep(0.6)  # Adjust the sleep time as needed
+
+            log_text.insert(tk.END, "\n")
+
             create_pdf(compressed_image_paths, output_pdf_path)
             log_text.insert(
                 tk.END, "PDF file generated: compressed_images.pdf\n", "success"

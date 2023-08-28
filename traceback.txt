@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "D:\KK's\automate_python\chapter10_debugging\raise.py", line 4, in <module>
+    raise Exception("Fuck Bro")
+Exception: Fuck Bro

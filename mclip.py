@@ -15,6 +15,6 @@ if len(sys.argv) < 2:
 keyphrase = sys.argv[1]  # first command line arg is the keyphrase
 if keyphrase in TEXT:
     pyperclip.copy(TEXT[keyphrase])
-    print(f"Text fro {keyphrase} is copied to clipboard.")
+    print(f"Text for {keyphrase} is copied to clipboard.")
 else:
     print(f"there is no information about {keyphrase}")

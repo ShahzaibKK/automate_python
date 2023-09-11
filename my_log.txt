@@ -1,5 +1,4 @@
-2023-08-30 17:18:24,333 - DEBUG - Debug message
-2023-08-30 17:18:24,333 - INFO - Info message
-2023-08-30 17:18:24,333 - WARNING - Warning message
-2023-08-30 17:18:24,333 - ERROR - Error message
-2023-08-30 17:18:24,333 - CRITICAL - Critical message
+2023-09-10 15:04:33,781 - INFO - Info message
+2023-09-10 15:04:33,781 - WARNING - Warning message
+2023-09-10 15:04:33,781 - ERROR - Error message
+2023-09-10 15:04:33,781 - CRITICAL - Critical message

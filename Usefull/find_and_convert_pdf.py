@@ -1,7 +1,6 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from tkinter import ttk
-import shutil
 import os
 from openpyxl import load_workbook
 from PIL import Image

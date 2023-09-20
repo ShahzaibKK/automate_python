@@ -21,3 +21,12 @@ print(elmts[1].attrs)
 print(str(elmts[2]))
 print(elmts[2].get_text())
 print(elmts[2].attrs)
+print()
+
+
+# Getting Data From an Element's Attributes
+elmts = example_soup.select("span")[1]
+print(str(elmts))
+print(elmts.get("id"))
+print(elmts.get_text())
+print(elmts.get("iddd_not_existent") == None)

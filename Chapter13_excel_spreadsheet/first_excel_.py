@@ -1,7 +1,7 @@
 import openpyxl
 from pathlib import Path
 
-wb = openpyxl.load_workbook("../example.xlsx")
+wb = openpyxl.load_workbook("example.xlsx")
 print(type(wb))
 print(Path.cwd())
 print(wb.sheetnames)

@@ -1,12 +1,12 @@
 import openpyxl
 
-wb = openpyxl.load_workbook("../example.xlsx")
+wb = openpyxl.load_workbook("example.xlsx")
 sheet = wb["Sheet1"]
 print(tuple(sheet["A1":"C3"]))
 print()
 for rowOfCellObjects in sheet["A1":"C3"]:
     for cellObjects in rowOfCellObjects:
-        print(cellObjects.coordinate,cellObjects.value)
+        print(cellObjects.coordinate, cellObjects.value)
     print("----END of Line----")
 
 print()

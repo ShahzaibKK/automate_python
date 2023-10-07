@@ -1,7 +1,7 @@
 import os
 
-folder_path = "D:\Khuram Tiles\Main Files\Huamei Ceramics\GW\\New folder"  # Replace with the path to your folder
-prefix = "36GW"  # Define the desired prefix
+folder_path = r"D:\Khuram Tiles\Main Files\Huamei Ceramics\HM\10x20"  # Replace with the path to your folder
+prefix = "25HM"  # Define the desired prefix
 
 # Iterate through the files in the folder
 for filename in os.listdir(folder_path):

@@ -25,15 +25,52 @@ from reportlab.platypus.flowables import Flowable
 from reportlab.platypus import Spacer
 from reportlab.lib import pagesizes
 from reportlab.lib.units import inch
+import datetime
 
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-all_pics = r"D:\Khuram Tiles\Main Files\Huamei Ceramics\DM"
-destination_path_comp = Path(r"D:\KK's\automate_python\Kokala")
+"""
+Stock PDF Generator
+
+Author: Shahzaib KK
+
+This Python script is designed to generate PDF documents from a collection of images. It is specifically tailored to the needs of Khuram Tiles, Peshawar, for creating product catalogs. The script compresses images, adds quantity information, and optionally includes a logo. It is intended to automate the process of generating these catalogs.
+
+Usage:
+- Ensure you have the required libraries installed (Pillow, openpyxl, reportlab).
+- Prepare your images and Excel file as per the specified format.
+- Run this script with the desired options to generate the PDF.
+
+Options:
+- 'logo': Include the company logo in the PDF.
+
+For more detailed information on how to use this script, please refer to the documentation or contact the author.
+
+Note:
+This script is part of an automation project and is customized for a specific use case. It may require adjustments for different scenarios.
+"""
+
+ALL_RECORDS = Path.home() / "Desktop/DATA"
+if not ALL_RECORDS.exists():
+    ALL_RECORDS.mkdir()
+COMPRESS_IMAGE_PATH = Path.home() / "Desktop/DATA/compressed_images"
+if not COMPRESS_IMAGE_PATH.exists():
+    COMPRESS_IMAGE_PATH.mkdir()
+
+all_pics = Path(r"D:\Khuram Tiles\Main Files\Huamei Ceramics\DM")
+destination_path_comp = COMPRESS_IMAGE_PATH
 KT_LOGO = r"D:\Khuram Tiles\Main Files\Huamei Ceramics\MIX Pics\1.jpg"
-pdf_file = Path(r"C:\Users\shahz\Desktop\bro.pdf")
+formated_date = datetime.date.today().strftime("%d-%m-%Y")
+pdf_file = ALL_RECORDS / f"Available_Stock_{formated_date}.pdf"
 show_first = input("which articels you want to show first, e.g: 36DM, 40CP, 36HM etc: ")
+MISSING_FILES = set()
+MISSING_FILES_PATH = ALL_RECORDS / "Missing_Images.txt"
+
+
 logging.basicConfig(
-    filename="mylog.log", level=logging.INFO, format="%(asctime)s - %(message)s"
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
 )
 
 
@@ -110,7 +147,7 @@ def collect_qty():
     wb.close()
 
 
-def check_compressed_files(path_and_name):
+def check_compressed_files(path_and_name: Path):
     if Path(path_and_name).exists():
         return True
 
@@ -140,7 +177,6 @@ def compress_images(image_path, destination_path, greater_than=0, remove_white_b
 
 
 def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
-    logging.info(f"{image_paths}")
     kokala = image_paths.parent
     qty = collect_qty()
 
@@ -148,7 +184,7 @@ def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
     elements = []
 
     if logo_path:
-        logo = Image(logo_path, width=10 * inch, height=7 * inch)
+        logo = Image(logo_path, width=7 * inch, height=7 * inch)
         elements.append(logo)
 
     for image_path in kokala.glob("*"):
@@ -218,17 +254,23 @@ def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
 if __name__ == "__main__":
     for article in collect_articels():
         file_name_ = article + ".jpg"
-        article_path = os.path.join(all_pics, file_name_)
+        article_path = Path.joinpath(all_pics, file_name_)
 
         if Path(article_path).is_file():
             compress_images_path = compress_images(
                 article_path, destination_path_comp, greater_than=1
             )
+        else:
+            logging.error(f"Not Availble: {article_path.stem}")
+            MISSING_FILES.add(article_path)
 
-    # Modify this line to convert pdf_file to a string
+    with open(MISSING_FILES_PATH, "w") as missing_report:
+        for missing_file in MISSING_FILES:
+            missing_report.write(missing_file.stem + "\n")
+
     if len(sys.argv) > 1:
         if sys.argv[1] == "logo":
             create_pdf(compress_images_path, str(pdf_file), KT_LOGO)
         else:
             create_pdf(compress_images_path, str(pdf_file))
-# create_pdf(compress_images_path, str(pdf_file), str(KT_LOGO))
+logging.info(f"PDF was Created: {pdf_file}")

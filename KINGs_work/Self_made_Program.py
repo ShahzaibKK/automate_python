@@ -2,6 +2,7 @@ import os, re, sys
 import openpyxl
 import shutil
 from PIL import Image as PIL_Image
+from PIL import ImageDraw, ImageFont
 from pathlib import Path
 import logging
 from openpyxl.worksheet.worksheet import Worksheet
@@ -66,7 +67,7 @@ pdf_file = ALL_RECORDS / f"Available_Stock_{formated_date}.pdf"
 show_first = input("which articels you want to show first, e.g: 36DM, 40CP, 36HM etc: ")
 MISSING_FILES = set()
 MISSING_FILES_PATH = ALL_RECORDS / "Missing_Images.txt"
-
+AVAILABLE_STOCK = Path.home() / "Desktop/available_stock.xlsx"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -76,13 +77,11 @@ logging.basicConfig(
 
 def collect_articels():
     """Load Excel File And Store the articels in a set"""
-    wb = openpyxl.load_workbook(
-        r"D:\Khuram Tiles\Main Files\Huamei Ceramics\available_stock.xlsx"
-    )
+    wb = openpyxl.load_workbook(AVAILABLE_STOCK)
     artile_regex = re.compile(r"\d{2}\w{2}\d{3}")
 
     # Select the worksheet you want to read
-    sheet = wb["Table 1"]  # You can also select a specific sheet by name
+    sheet = wb.active  # You can also select a specific sheet by name
 
     # Find the last row and column with data
     max_row = sheet.max_row
@@ -115,10 +114,8 @@ def collect_qty():
     article_names = collect_articels()
 
     # Load the Excel workbook
-    wb = openpyxl.load_workbook(
-        r"D:\Khuram Tiles\Main Files\Huamei Ceramics\available_stock.xlsx"
-    )
-    sheet = wb["Table 1"]
+    wb = openpyxl.load_workbook(AVAILABLE_STOCK)
+    sheet = wb.active
 
     # Initialize a dictionary to store article names and their quantities
     article_quantities = {}
@@ -140,8 +137,6 @@ def collect_qty():
                                     article_full_name
                                 ] = quantity_cell.value
 
-    # Print the article names and their quantities
-    # pprint.pprint(article_quantities)
     return article_quantities
     # Close the workbook
     wb.close()
@@ -162,10 +157,36 @@ def compress_images(image_path, destination_path, greater_than=0, remove_white_b
             image = PIL_Image.open(image_path)
             image = image.convert("RGB")
 
-            image.thumbnail((2500, 2500))
-            image.save(
-                compressed_file_name_dest, format="JPEG", quality=70
-            )  # Use PNG format for transparency
+            # Add a watermark to the image
+            draw = ImageDraw.Draw(image)
+            font = ImageFont.truetype("arial.ttf", 110)
+
+            # Calculate the bounding box of the watermark text
+            text_bounding_box = font.getbbox(watermark_text)
+
+            # Calculate the position of the text in the bottom right corner
+            image_width, image_height = image.size
+            text_width, text_height = (
+                text_bounding_box[2] - text_bounding_box[0],
+                text_bounding_box[3] - text_bounding_box[1],
+            )
+            text_position = (
+                image_width - text_width - 15,
+                image_height - text_height - 40,
+            )
+
+            # Draw the text at the calculated position
+            # Set the anchor argument to 'la'
+            draw.text(
+                text_position,
+                watermark_text,
+                font=font,
+                fill=(234, 215, 139, 128),
+                anchor="la",
+            )
+
+            image.thumbnail((1800, 1800))
+            image.save(compressed_file_name_dest, format="JPEG", quality=60)
             logging.info(f"Compressed {file_name} to {compressed_file_name_dest}")
         else:
             shutil.copy(image_path, destination_path)
@@ -196,7 +217,9 @@ def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
 
         # Add the image to the flowables
         image = Image(
-            image_path, width=20.5 * inch, height=7.3 * inch, kind="proportional"
+            image_path,
+            width=6.5 * inch,
+            height=7.3 * inch,
         )
 
         flowables.append(image)
@@ -241,6 +264,8 @@ def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
             id=f"page_{pure}",
             frames=[frame],
         )
+        # Set the background color of the page template
+        page_template.background = colors.black
 
         # Add a page break before each new image and its table
         if elements:
@@ -252,13 +277,17 @@ def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
 
 
 if __name__ == "__main__":
+    watermark_text = "KHURAM TILES PESHAWAR"
     for article in collect_articels():
         file_name_ = article + ".jpg"
         article_path = Path.joinpath(all_pics, file_name_)
 
         if Path(article_path).is_file():
             compress_images_path = compress_images(
-                article_path, destination_path_comp, greater_than=1
+                article_path,
+                destination_path_comp,
+                greater_than=0,
+                remove_white_bg=True,
             )
         else:
             logging.error(f"Not Availble: {article_path.stem}")

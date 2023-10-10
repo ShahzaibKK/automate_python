@@ -1,16 +1,12 @@
 import os, re, sys
 import openpyxl
+from openpyxl.worksheet.worksheet import Worksheet
 import shutil
 from PIL import Image as PIL_Image
 from PIL import ImageDraw, ImageFont
 from pathlib import Path
 import logging
-from openpyxl.worksheet.worksheet import Worksheet
-from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
-from reportlab.lib.utils import ImageReader
-from PIL import Image, ImageOps
-import pprint
 from reportlab.platypus import (
     SimpleDocTemplate,
     Image,
@@ -22,9 +18,6 @@ from reportlab.platypus import (
 )
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
-from reportlab.platypus.flowables import Flowable
-from reportlab.platypus import Spacer
-from reportlab.lib import pagesizes
 from reportlab.lib.units import inch
 import datetime
 
@@ -59,7 +52,7 @@ COMPRESS_IMAGE_PATH = Path.home() / "Desktop/DATA/compressed_images"
 if not COMPRESS_IMAGE_PATH.exists():
     COMPRESS_IMAGE_PATH.mkdir()
 
-all_pics = Path(r"D:\Khuram Tiles\Main Files\Huamei Ceramics\DM")
+all_pics = Path(r"D:\Khuram Tiles\Main Files\Huamei Ceramics\MIX Pics")
 destination_path_comp = COMPRESS_IMAGE_PATH
 KT_LOGO = r"D:\Khuram Tiles\Main Files\Huamei Ceramics\MIX Pics\1.jpg"
 formated_date = datetime.date.today().strftime("%d-%m-%Y")
@@ -81,7 +74,7 @@ def collect_articels():
     artile_regex = re.compile(r"\d{2}\w{2}\d{3}")
 
     # Select the worksheet you want to read
-    sheet = wb.active  # You can also select a specific sheet by name
+    sheet: Worksheet = wb.active  # You can also select a specific sheet by name
 
     # Find the last row and column with data
     max_row = sheet.max_row
@@ -115,7 +108,7 @@ def collect_qty():
 
     # Load the Excel workbook
     wb = openpyxl.load_workbook(AVAILABLE_STOCK)
-    sheet = wb.active
+    sheet: Worksheet = wb.active
 
     # Initialize a dictionary to store article names and their quantities
     article_quantities = {}
@@ -147,7 +140,13 @@ def check_compressed_files(path_and_name: Path):
         return True
 
 
-def compress_images(image_path, destination_path, greater_than=0, remove_white_bg=True):
+def compress_images(
+    image_path,
+    destination_path,
+    greater_than=0,
+    remove_white_bg=True,
+    target_resolution=(1800, 1800),
+):
     size_MB = Path(image_path).stat().st_size / (1024 * 1024)
     file_name = Path(image_path).name
     compressed_file_name_dest = destination_path / f"compressed_{file_name}"
@@ -157,9 +156,12 @@ def compress_images(image_path, destination_path, greater_than=0, remove_white_b
             image = PIL_Image.open(image_path)
             image = image.convert("RGB")
 
+            # Resize the image to the target resolution
+            image.thumbnail(target_resolution)
+
             # Add a watermark to the image
             draw = ImageDraw.Draw(image)
-            font = ImageFont.truetype("arial.ttf", 110)
+            font = ImageFont.truetype("arial.ttf", 45)
 
             # Calculate the bounding box of the watermark text
             text_bounding_box = font.getbbox(watermark_text)
@@ -172,7 +174,7 @@ def compress_images(image_path, destination_path, greater_than=0, remove_white_b
             )
             text_position = (
                 image_width - text_width - 15,
-                image_height - text_height - 40,
+                image_height - text_height - 35,
             )
 
             # Draw the text at the calculated position
@@ -185,7 +187,6 @@ def compress_images(image_path, destination_path, greater_than=0, remove_white_b
                 anchor="la",
             )
 
-            image.thumbnail((1800, 1800))
             image.save(compressed_file_name_dest, format="JPEG", quality=60)
             logging.info(f"Compressed {file_name} to {compressed_file_name_dest}")
         else:
@@ -205,7 +206,7 @@ def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
     elements = []
 
     if logo_path:
-        logo = Image(logo_path, width=7 * inch, height=7 * inch)
+        logo = Image(logo_path, width=7 * inch, height=8 * inch)
         elements.append(logo)
 
     for image_path in kokala.glob("*"):
@@ -216,11 +217,7 @@ def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
         flowables = []
 
         # Add the image to the flowables
-        image = Image(
-            image_path,
-            width=6.5 * inch,
-            height=7.3 * inch,
-        )
+        image = Image(image_path, width=6 * inch, height=7.3 * inch)
 
         flowables.append(image)
 
@@ -240,14 +237,30 @@ def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
                 [
                     ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
                     ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-                    ("ALIGN", (0, 0), (-1, -1), "RIGHT"),
+                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
                     ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                    ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+                    (
+                        "FONTSIZE",
+                        (0, 0),
+                        (-1, 0),
+                        18,
+                    ),
+                    ("FONTNAME", (0, 1), (-1, -1), "Helvetica-Bold"),  # Add this line
+                    (
+                        "FONTSIZE",
+                        (0, 1),
+                        (-1, -1),
+                        16,
+                    ),  # Add this line to increase font size
+                    ("BOTTOMPADDING", (0, 0), (-1, 0), 13),
+                    ("BOTTOMPADDING", (0, 1), (-1, -1), 10),
                     ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
-                    ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                    ("TEXTCOLOR", (0, 1), (-1, -1), colors.blue),
+                    ("GRID", (0, 0), (-1, -1), 2, colors.black),
                 ]
             )
         )
+
         flowables.append(table)
 
         # Create a frame for the flowables

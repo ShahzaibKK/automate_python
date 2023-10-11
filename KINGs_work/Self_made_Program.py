@@ -63,9 +63,17 @@ MISSING_FILES_PATH = ALL_RECORDS / "Missing_Images.txt"
 AVAILABLE_STOCK = Path.home() / "Desktop/available_stock.xlsx"
 
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
+
+
+# define custom sorting function
+def custom_sorting(name: str):
+    if name.startswith(show_first):
+        return (0, name)
+    else:
+        return (1, name)
 
 
 def collect_articels():
@@ -89,13 +97,6 @@ def collect_articels():
                 mo = artile_regex.search(str(cell_value))
                 if mo:
                     articels_name.add(mo.group())
-
-    # define custom sorting function
-    def custom_sorting(name: str):
-        if name.startswith(show_first):
-            return (0, name)
-        else:
-            return (1, name)
 
     sorted_articles = sorted(articels_name, key=custom_sorting)
     return sorted_articles
@@ -218,7 +219,6 @@ def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
 
         # Add the image to the flowables
         image = Image(image_path, width=6 * inch, height=7.3 * inch)
-
         flowables.append(image)
 
         # Create a data list for the table
@@ -262,7 +262,6 @@ def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
         )
 
         flowables.append(table)
-
         # Create a frame for the flowables
         frame = Frame(
             doc.leftMargin,
@@ -290,7 +289,11 @@ def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
 
 
 if __name__ == "__main__":
-    watermark_text = "KHURAM TILES PESHAWAR"
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "logo":
+            watermark_text = "KHURAM TILES PESHAWAR"
+        else:
+            watermark_text = ""
     for article in collect_articels():
         file_name_ = article + ".jpg"
         article_path = Path.joinpath(all_pics, file_name_)
@@ -313,6 +316,8 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         if sys.argv[1] == "logo":
             create_pdf(compress_images_path, str(pdf_file), KT_LOGO)
+            watermark_text = "KHURAM TILES PESHAWAR"
         else:
             create_pdf(compress_images_path, str(pdf_file))
+            watermark_text = ""
 logging.info(f"PDF was Created: {pdf_file}")

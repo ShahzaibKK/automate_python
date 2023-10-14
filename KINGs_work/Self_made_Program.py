@@ -1,4 +1,4 @@
-import os, re, sys
+import re, sys
 import openpyxl
 from openpyxl.worksheet.worksheet import Worksheet
 import shutil
@@ -19,7 +19,7 @@ from reportlab.platypus import (
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.lib.units import inch
-import datetime
+import datetime, time
 
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
@@ -27,7 +27,7 @@ import datetime
 """
 Stock PDF Generator
 
-Author: Shahzaib KK
+Author: Shahzaib KK +92 336 8311100
 
 This Python script is designed to generate PDF documents from a collection of images. It is specifically tailored to the needs of Khuram Tiles, Peshawar, for creating product catalogs. The script compresses images, adds quantity information, and optionally includes a logo. It is intended to automate the process of generating these catalogs.
 
@@ -57,7 +57,7 @@ destination_path_comp = COMPRESS_IMAGE_PATH
 KT_LOGO = r"D:\Khuram Tiles\Main Files\Huamei Ceramics\MIX Pics\1.jpg"
 formated_date = datetime.date.today().strftime("%d-%m-%Y")
 pdf_file = ALL_RECORDS / f"Available_Stock_{formated_date}.pdf"
-show_first = input("which articels you want to show first, e.g: 36DM, 40CP, 36HM etc: ")
+# show_first = input("which articels you want to show first, e.g: 36DM, 40CP, 36HM etc: ")
 MISSING_FILES = set()
 MISSING_FILES_PATH = ALL_RECORDS / "Missing_Images.txt"
 AVAILABLE_STOCK = Path.home() / "Desktop/available_stock.xlsx"
@@ -70,16 +70,25 @@ logging.basicConfig(
 
 # define custom sorting function
 def custom_sorting(name: str):
-    if name.startswith(show_first):
+    if name.startswith(name):
         return (0, name)
     else:
         return (1, name)
 
 
+time.sleep(5)
+
+
 def collect_articels():
     """Load Excel File And Store the articels in a set"""
     wb = openpyxl.load_workbook(AVAILABLE_STOCK)
-    artile_regex = re.compile(r"\d{2}\w{2}\d{3}")
+    if len(sys.argv) > 2:
+        if sys.argv[2] == "DM":
+            article_regex = re.compile(r"\d{2}DM\d{3}")
+        else:
+            article_regex = re.compile(r"\d{2}\w{2}\d{3}")
+    else:
+        article_regex = re.compile(r"\d{2}\w{2}\d{3}")
 
     # Select the worksheet you want to read
     sheet: Worksheet = wb.active  # You can also select a specific sheet by name
@@ -94,12 +103,12 @@ def collect_articels():
         for col in range(1, max_col + 1):
             cell_value = sheet.cell(row=row, column=col).value
             if cell_value:
-                mo = artile_regex.search(str(cell_value))
+                mo = article_regex.search(str(cell_value))
                 if mo:
                     articels_name.add(mo.group())
 
-    sorted_articles = sorted(articels_name, key=custom_sorting)
-    return sorted_articles
+    # sorted_articles = sorted(articels_name, key=custom_sorting)
+    return articels_name
     wb.close()
 
 
@@ -218,7 +227,7 @@ def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
         flowables = []
 
         # Add the image to the flowables
-        image = Image(image_path, width=6 * inch, height=7.3 * inch)
+        image = Image(image_path, width=5.5 * inch, height=7 * inch)
         flowables.append(image)
 
         # Create a data list for the table
@@ -256,7 +265,7 @@ def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
                     ("BOTTOMPADDING", (0, 1), (-1, -1), 10),
                     ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
                     ("TEXTCOLOR", (0, 1), (-1, -1), colors.blue),
-                    ("GRID", (0, 0), (-1, -1), 2, colors.black),
+                    ("GRID", (0, 0), (-1, -1), 1.5, colors.black),
                 ]
             )
         )
@@ -294,6 +303,8 @@ if __name__ == "__main__":
             watermark_text = "KHURAM TILES PESHAWAR"
         else:
             watermark_text = ""
+
+    compress_images_path = None
     for article in collect_articels():
         file_name_ = article + ".jpg"
         article_path = Path.joinpath(all_pics, file_name_)
@@ -312,12 +323,12 @@ if __name__ == "__main__":
     with open(MISSING_FILES_PATH, "w") as missing_report:
         for missing_file in MISSING_FILES:
             missing_report.write(missing_file.stem + "\n")
-
-    if len(sys.argv) > 1:
-        if sys.argv[1] == "logo":
-            create_pdf(compress_images_path, str(pdf_file), KT_LOGO)
-            watermark_text = "KHURAM TILES PESHAWAR"
-        else:
-            create_pdf(compress_images_path, str(pdf_file))
-            watermark_text = ""
+    if compress_images_path:
+        if len(sys.argv) > 1:
+            if sys.argv[1] == "logo":
+                create_pdf(compress_images_path, str(pdf_file), KT_LOGO)
+                watermark_text = "KHURAM TILES PESHAWAR"
+            else:
+                create_pdf(compress_images_path, str(pdf_file))
+                watermark_text = ""
 logging.info(f"PDF was Created: {pdf_file}")

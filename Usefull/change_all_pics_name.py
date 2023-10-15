@@ -1,7 +1,9 @@
 import os
 
-folder_path = r"D:\Khuram Tiles\Main Files\Huamei Ceramics\HM\10x20"  # Replace with the path to your folder
-prefix = "25HM"  # Define the desired prefix
+folder_path = (
+    r"C:\Users\shahz\Downloads\400X400 CP.pdf~1"  # Replace with the path to your folder
+)
+prefix = "40CP"  # Define the desired prefix
 
 # Iterate through the files in the folder
 for filename in os.listdir(folder_path):

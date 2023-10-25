@@ -76,7 +76,8 @@ def custom_sorting(name: str):
         return (1, name)
 
 
-time.sleep(5)
+print("***** Create by Shahzaib KK +92 336 8311100 *****")
+time.sleep(4)
 
 
 def collect_articels():
@@ -209,17 +210,22 @@ def compress_images(
 
 
 def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
-    kokala = image_paths.parent
+    folder = image_paths.parent
     qty = collect_qty()
+    # Sort the image files to prioritize "36DM" images
+    image_paths: Path = sorted(
+        folder.glob("*"), key=lambda path: not path.name.startswith("compressed_36DM")
+    )
 
     doc = SimpleDocTemplate(output_pdf_path, pagesize=letter)
+    doc.background = colors.black
     elements = []
 
     if logo_path:
         logo = Image(logo_path, width=7 * inch, height=8 * inch)
         elements.append(logo)
 
-    for image_path in kokala.glob("*"):
+    for image_path in image_paths:
         pure = image_path.stem[11:]
         article_regex = re.compile(rf"{pure}(\w+)?(\d+)?")
 
@@ -227,9 +233,8 @@ def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
         flowables = []
 
         # Add the image to the flowables
-        image = Image(image_path, width=5.5 * inch, height=7 * inch)
+        image = Image(image_path, width=5 * inch, height=7 * inch)
         flowables.append(image)
-
         # Create a data list for the table
         data = [["Article", "Quantity"]]
         for key in qty:

@@ -233,7 +233,7 @@ def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
         flowables = []
 
         # Add the image to the flowables
-        image = Image(image_path, width=5 * inch, height=7 * inch)
+        image = Image(image_path, width=5.4 * inch, height=7.5 * inch)
         flowables.append(image)
         # Create a data list for the table
         data = [["Article", "Quantity"]]
@@ -257,20 +257,21 @@ def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
                         "FONTSIZE",
                         (0, 0),
                         (-1, 0),
-                        18,
+                        13,
                     ),
                     ("FONTNAME", (0, 1), (-1, -1), "Helvetica-Bold"),  # Add this line
                     (
                         "FONTSIZE",
                         (0, 1),
                         (-1, -1),
-                        16,
+                        13,
                     ),  # Add this line to increase font size
-                    ("BOTTOMPADDING", (0, 0), (-1, 0), 13),
-                    ("BOTTOMPADDING", (0, 1), (-1, -1), 10),
+                    ("BOTTOMPADDING", (0, 0), (-1, 0), 6),
+                    ("TOPPADDING", (0, 1), (-1, -1), 3),
+                    ("BOTTOMPADDING", (0, 1), (-1, -1), 3),
                     ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
                     ("TEXTCOLOR", (0, 1), (-1, -1), colors.blue),
-                    ("GRID", (0, 0), (-1, -1), 1.5, colors.black),
+                    ("GRID", (0, 0), (-1, -1), 1.2, colors.black),
                 ]
             )
         )

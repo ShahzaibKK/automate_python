@@ -77,7 +77,7 @@ def custom_sorting(name: str):
 
 
 print("***** Create by Shahzaib KK +92 336 8311100 *****")
-time.sleep(4)
+time.sleep(3)
 
 
 def collect_articels():

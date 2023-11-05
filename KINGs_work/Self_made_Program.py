@@ -45,6 +45,13 @@ Note:
 This script is part of an automation project and is customized for a specific use case. It may require adjustments for different scenarios.
 """
 
+EXPIRE = datetime.datetime(2022, 12, 31, 23, 59, 59)
+if EXPIRE > datetime.datetime.now():
+    logging.error(
+        f"Your Program Licance has been Expired Please Contact with Khan, Expiration date is : {EXPIRE}"
+    )
+    sys.exit()
+
 ALL_RECORDS = Path.home() / "Desktop/DATA"
 if not ALL_RECORDS.exists():
     ALL_RECORDS.mkdir()

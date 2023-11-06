@@ -45,13 +45,6 @@ Note:
 This script is part of an automation project and is customized for a specific use case. It may require adjustments for different scenarios.
 """
 
-EXPIRE = datetime.datetime(2022, 12, 31, 23, 59, 59)
-if EXPIRE > datetime.datetime.now():
-    logging.error(
-        f"Your Program Licance has been Expired Please Contact with Khan, Expiration date is : {EXPIRE}"
-    )
-    sys.exit()
-
 ALL_RECORDS = Path.home() / "Desktop/DATA"
 if not ALL_RECORDS.exists():
     ALL_RECORDS.mkdir()
@@ -311,6 +304,12 @@ def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
 
 
 if __name__ == "__main__":
+    EXPIRE = datetime.datetime(2022, 12, 31, 23, 59, 59)
+    if EXPIRE < datetime.datetime.now():
+        logging.error(
+            f"Your program license has expired. Please contact Khan to renew your license."
+        )
+        sys.exit()
     if len(sys.argv) > 1:
         if sys.argv[1] == "logo":
             watermark_text = "KHURAM TILES PESHAWAR"

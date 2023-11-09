@@ -19,7 +19,7 @@ from reportlab.platypus import (
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.lib.units import inch
-import datetime, time
+import datetime, time, requests
 
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
@@ -304,8 +304,14 @@ def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
 
 
 if __name__ == "__main__":
-    EXPIRE = datetime.datetime(2022, 12, 31, 23, 59, 59)
-    if EXPIRE < datetime.datetime.now():
+    curl = "http://worldtimeapi.org/api/timezone/Asia/Karachi"
+
+    res = requests.get(curl)
+    res.raise_for_status()
+    json = res.json()
+    world_api_date_time = datetime.datetime.fromisoformat(json["datetime"])
+    EXPIRE = datetime.datetime(2023, 12, 31, 23, 59, 59).astimezone()
+    if EXPIRE < world_api_date_time:
         logging.error(
             f"Your program license has expired. Please contact Khan to renew your license."
         )

@@ -87,9 +87,9 @@ def collect_articels():
         if sys.argv[2] == "DM":
             article_regex = re.compile(r"\d{2}DM\d{3}")
         else:
-            article_regex = re.compile(r"\d{2}\w{2}\d{3}")
+            article_regex = re.compile(r"(\w)?\d{2}\w{2}\d{3}")
     else:
-        article_regex = re.compile(r"\d{2}\w{2}\d{3}")
+        article_regex = re.compile(r"(\w)?\d{2}\w{2}\d{3}")
 
     # Select the worksheet you want to read
     sheet: Worksheet = wb.active  # You can also select a specific sheet by name

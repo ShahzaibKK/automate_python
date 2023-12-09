@@ -20,6 +20,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 import datetime, time, requests
+import platform
 
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
@@ -45,22 +46,35 @@ Note:
 This script is part of an automation project and is customized for a specific use case. It may require adjustments for different scenarios.
 """
 
-ALL_RECORDS = Path.home() / "Desktop/DATA"
-if not ALL_RECORDS.exists():
-    ALL_RECORDS.mkdir()
-COMPRESS_IMAGE_PATH = Path.home() / "Desktop/DATA/compressed_images"
-if not COMPRESS_IMAGE_PATH.exists():
-    COMPRESS_IMAGE_PATH.mkdir()
+# Check if the operating system is Windows
+if platform.system() == "Windows":
+    # Check if it's Windows 11
+    if platform.version().startswith("10.0"):
+        # Adjust the path for Windows 11
+        desktop_path = Path(r"C:\Users\shahz\OneDrive\Desktop")
+    else:
+        # For other Windows versions
+        desktop_path = Path.home() / "Desktop"
 
-all_pics = Path(r"D:\Khuram Tiles\Main Files\Huamei Ceramics\MIX Pics")
-destination_path_comp = COMPRESS_IMAGE_PATH
-KT_LOGO = r"D:\Khuram Tiles\Main Files\Huamei Ceramics\MIX Pics\1.jpg"
-formated_date = datetime.date.today().strftime("%d-%m-%Y")
-pdf_file = ALL_RECORDS / f"Available_Stock_{formated_date}.pdf"
-# show_first = input("which articels you want to show first, e.g: 36DM, 40CP, 36HM etc: ")
-MISSING_FILES = set()
-MISSING_FILES_PATH = ALL_RECORDS / "Missing_Images.txt"
-AVAILABLE_STOCK = Path.home() / "Desktop/available_stock.xlsx"
+    ALL_RECORDS = desktop_path / "DATA"
+    ALL_RECORDS.mkdir(exist_ok=True)
+
+    COMPRESS_IMAGE_PATH = desktop_path / "DATA" / "compressed_images"
+    COMPRESS_IMAGE_PATH.mkdir(exist_ok=True)
+
+    all_pics = Path(r"D:\Khuram Tiles\Main Files\Huamei Ceramics\MIX Pics")
+    destination_path_comp = COMPRESS_IMAGE_PATH
+    KT_LOGO = r"D:\Khuram Tiles\Main Files\Huamei Ceramics\MIX Pics\1.jpg"
+    formated_date = datetime.date.today().strftime("%d-%m-%Y")
+    pdf_file = ALL_RECORDS / f"Available_Stock_{formated_date}.pdf"
+    # show_first = input("which articels you want to show first, e.g: 36DM, 40CP, 36HM etc: ")
+    MISSING_FILES = set()
+    MISSING_FILES_PATH = ALL_RECORDS / "Missing_Images.txt"
+    AVAILABLE_STOCK = desktop_path / "available_stock.xlsx"
+
+else:
+    print("This script is intended for Windows operating systems.")
+
 
 logging.basicConfig(
     level=logging.DEBUG,

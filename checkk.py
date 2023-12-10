@@ -1,13 +1,17 @@
 import re
-from KINGs_work.Self_made_Program import collect_qty
+from KINGs_work.Self_made_Program import collect_qty, compress_images_path
 
 # Assuming collect_qty() returns a dictionary
 qty_dict = collect_qty()
+for image in compress_images_path:
+    pure = image.stem[11:]
+    article_regex_pattern = rf"^{pure}(\w+)?(\d+)?$"
+    article_regex = re.compile(article_regex_pattern)
 
-for key, value in qty_dict.items():
-    mo_with_m = re.match(r"(\w)(?P<article_name>\d{2}\w{2}\d{3})(\w+)?(\d)?", key)
-    mo_without_m = re.match(r"(?<!\w)(?P<article_name>\d{2}\w{2}\d{3})(\w+)?(\d)?", key)
-
-    if mo_with_m:
-        print(f"M....{mo_with_m.group()}")
-        print(f"M....{qty_dict[mo_with_m.group()]}")
+    data = [["Article", "Quantity"]]
+    for key in qty_dict:
+        mo = article_regex.search(key)
+        if mo:
+            article = key
+            quantity = str(qty_dict[mo.group()])
+            data.append([article, quantity])

@@ -241,7 +241,8 @@ def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
 
     for image_path in image_paths:
         pure = image_path.stem[11:]
-        article_regex = re.compile(rf"{pure}(\w+)?(\d+)?")
+        article_regex_pattern = rf"^{pure}(\w+)?(\d+)?$"
+        article_regex = re.compile(article_regex_pattern)
 
         # Create a list of flowables for this image and its corresponding table
         flowables = []

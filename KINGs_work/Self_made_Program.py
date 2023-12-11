@@ -49,7 +49,7 @@ This script is part of an automation project and is customized for a specific us
 # Check if the operating system is Windows
 if platform.system() == "Windows":
     # Check if it's Windows 11
-    if platform.version().startswith("10.0"):
+    if platform.version().startswith("10.0.2"):
         # Adjust the path for Windows 11
         desktop_path = Path(r"C:\Users\shahz\OneDrive\Desktop")
     else:
@@ -139,7 +139,7 @@ def collect_qty():
     article_quantities = {}
 
     for article_name in article_names:
-        article_regex = re.compile(rf"{article_name}(\w+)?(\d+)?")  # Adjusted regex
+        article_regex = re.compile(rf"^{article_name}(\w+)?(\d+)?$")  # Adjusted regex
 
         for row in sheet.iter_rows():
             for i, cell in enumerate(row):
@@ -240,7 +240,7 @@ def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
         elements.append(logo)
 
     for image_path in image_paths:
-        pure = image_path.stem[11:]
+        pure: str = image_path.stem[11:]
         article_regex_pattern = rf"^{pure}(\w+)?(\d+)?$"
         article_regex = re.compile(article_regex_pattern)
 

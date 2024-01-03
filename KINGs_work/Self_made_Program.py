@@ -21,6 +21,8 @@ from reportlab.lib import colors
 from reportlab.lib.units import inch
 import datetime, time, requests
 import platform
+from reportlab.platypus import Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
 
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
@@ -239,10 +241,35 @@ def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
         logo = Image(logo_path, width=7 * inch, height=8 * inch)
         elements.append(logo)
 
+    # Define your categories dictionary
+    categories = {
+        "36": "12x24 Glaze",
+        "M36": "12x24 Matt",
+        "40": "16x16 Glaze",
+        "25": "10x20 Glaze",
+        "30": "12x12 Matt",
+    }  # Add more categories as needed
+
+    current_category = None
     for image_path in image_paths:
         pure: str = image_path.stem[11:]
         article_regex_pattern = rf"^{pure}(\w+)?(\d+)?$"
         article_regex = re.compile(article_regex_pattern)
+
+        # Check if the current article belongs to a new category
+        for key, category_text in categories.items():
+            if pure.startswith(key):
+                if current_category != category_text:
+                    current_category = category_text
+                    # Add the category text to the elements
+                    if elements:
+                        elements.append(PageBreak())
+                    category_text = f"Category: {current_category}"
+
+                    # Create a Paragraph for the category text
+                    styles = getSampleStyleSheet()
+                    category_paragraph = Paragraph(category_text, styles["Heading1"])
+                    elements.append(category_paragraph)
 
         # Create a list of flowables for this image and its corresponding table
         flowables = []
@@ -250,6 +277,7 @@ def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
         # Add the image to the flowables
         image = Image(image_path, width=5.4 * inch, height=7.5 * inch)
         flowables.append(image)
+
         # Create a data list for the table
         data = [["Article", "Quantity"]]
         for key in qty:
@@ -274,13 +302,13 @@ def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
                         (-1, 0),
                         13,
                     ),
-                    ("FONTNAME", (0, 1), (-1, -1), "Helvetica-Bold"),  # Add this line
+                    ("FONTNAME", (0, 1), (-1, -1), "Helvetica-Bold"),
                     (
                         "FONTSIZE",
                         (0, 1),
                         (-1, -1),
                         13,
-                    ),  # Add this line to increase font size
+                    ),
                     ("BOTTOMPADDING", (0, 0), (-1, 0), 6),
                     ("TOPPADDING", (0, 1), (-1, -1), 3),
                     ("BOTTOMPADDING", (0, 1), (-1, -1), 3),
@@ -292,27 +320,6 @@ def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
         )
 
         flowables.append(table)
-        # Create a frame for the flowables
-        frame = Frame(
-            doc.leftMargin,
-            doc.bottomMargin,
-            doc.width,
-            doc.height,
-            id=f"frame_{pure}",
-        )
-
-        # Create a PageTemplate for this frame
-        page_template = PageTemplate(
-            id=f"page_{pure}",
-            frames=[frame],
-        )
-        # Set the background color of the page template
-        page_template.background = colors.black
-
-        # Add a page break before each new image and its table
-        if elements:
-            elements.append(PageBreak())
-
         elements.extend(flowables)
 
     doc.build(elements)
@@ -325,7 +332,7 @@ if __name__ == "__main__":
     res.raise_for_status()
     json = res.json()
     world_api_date_time = datetime.datetime.fromisoformat(json["datetime"])
-    EXPIRE = datetime.datetime(2023, 12, 31, 23, 59, 59).astimezone()
+    EXPIRE = datetime.datetime(2024, 12, 31, 23, 59, 59).astimezone()
     if EXPIRE < world_api_date_time:
         logging.error(
             f"Your program license has expired. Please contact Khan to renew your license."

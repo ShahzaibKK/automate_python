@@ -171,7 +171,6 @@ def compress_images(
     image_path,
     destination_path,
     greater_than=0,
-    remove_white_bg=True,
     target_resolution=(1800, 1800),
 ):
     size_MB = Path(image_path).stat().st_size / (1024 * 1024)
@@ -247,7 +246,7 @@ def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
         "M36": "12x24 Matt",
         "40": "16x16 Glaze",
         "25": "10x20 Glaze",
-        "30": "12x12 Matt",
+        "M30": "12x12 Matt",
     }  # Add more categories as needed
 
     current_category = None
@@ -354,7 +353,6 @@ if __name__ == "__main__":
                 article_path,
                 destination_path_comp,
                 greater_than=0,
-                remove_white_bg=True,
             )
         else:
             logging.error(f"Not Availble: {article_path.stem}")

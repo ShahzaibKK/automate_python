@@ -13,15 +13,12 @@ from reportlab.platypus import (
     Table,
     TableStyle,
     PageBreak,
-    PageTemplate,
-    Frame,
 )
-from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 import datetime, time, requests
 import platform
-from reportlab.platypus import Paragraph, Spacer
+from reportlab.platypus import Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 
 #!/usr/bin/env python
@@ -93,7 +90,7 @@ def custom_sorting(name: str):
 
 
 print("***** Create by Shahzaib KK +92 336 8311100 *****")
-time.sleep(3)
+time.sleep(2)
 
 
 def collect_articels():
@@ -123,10 +120,7 @@ def collect_articels():
                 mo = article_regex.search(str(cell_value))
                 if mo:
                     articels_name.add(mo.group())
-
-    # sorted_articles = sorted(articels_name, key=custom_sorting)
     return articels_name
-    wb.close()
 
 
 def collect_qty():
@@ -359,8 +353,10 @@ if __name__ == "__main__":
             MISSING_FILES.add(article_path)
 
     with open(MISSING_FILES_PATH, "w") as missing_report:
-        for missing_file in MISSING_FILES:
-            missing_report.write(missing_file.stem + "\n")
+        missing_report.writelines(
+            f"{missing_file.stem}\n" for missing_file in MISSING_FILES
+        )
+
     if compress_images_path:
         if len(sys.argv) > 1:
             if sys.argv[1] == "logo":

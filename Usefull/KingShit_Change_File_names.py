@@ -6,6 +6,7 @@ class ChangeNames:
         self.path = Path(path)
 
     def change_first_prefixs(self, prefix: str):
+        """Only Prefix The Name"""
         for path in self.path.iterdir():
             new_name = f"{prefix}{path.name}"
             path.rename(self.path / new_name)

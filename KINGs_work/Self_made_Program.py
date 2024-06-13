@@ -102,7 +102,7 @@ def collect_articels():
         else:
             article_regex = re.compile(r"(\w)?\d{2}\w{2}\d{3}")
     else:
-        article_regex = re.compile(r"(\w)?\d{2}\w{2}\d{3}")
+        article_regex = re.compile(r"(\w)?\d{2,3}\w{2}\d{3}")
 
     # Select the worksheet you want to read
     sheet: Worksheet = wb.active  # You can also select a specific sheet by name
@@ -147,9 +147,9 @@ def collect_qty():
                         if i < len(row) - 1:
                             quantity_cell = row[i + 1]
                             if quantity_cell.value:
-                                article_quantities[
-                                    article_full_name
-                                ] = quantity_cell.value
+                                article_quantities[article_full_name] = (
+                                    quantity_cell.value
+                                )
 
     return article_quantities
     # Close the workbook
@@ -236,6 +236,8 @@ def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
 
     # Define your categories dictionary
     categories = {
+        "612": "24x48 Glaze",
+        "60": "24x24 Glaze",
         "36": "12x24 Glaze",
         "M36": "12x24 Matt",
         "40": "16x16 Glaze",

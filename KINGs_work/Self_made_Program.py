@@ -147,9 +147,9 @@ def collect_qty():
                         if i < len(row) - 1:
                             quantity_cell = row[i + 1]
                             if quantity_cell.value:
-                                article_quantities[
-                                    article_full_name
-                                ] = quantity_cell.value
+                                article_quantities[article_full_name] = (
+                                    quantity_cell.value
+                                )
 
     return article_quantities
     # Close the workbook
@@ -318,19 +318,72 @@ def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
     doc.build(elements)
 
 
-if __name__ == "__main__":
-    curl = "http://worldtimeapi.org/api/timezone/Asia/Karachi"
+def get_world_time():
+    """Fetch current time from worldtimeapi.org."""
+    try:
+        curl = "http://worldtimeapi.org/api/timezone/Asia/Karachi"
+        logging.debug(f"Fetching time from {curl}")
+        res = requests.get(curl, timeout=10)
+        res.raise_for_status()
+        json = res.json()
+        # Convert to offset-aware datetime
+        return datetime.datetime.fromisoformat(json["datetime"])
+    except (requests.RequestException, KeyError, ValueError) as e:
+        logging.error(f"Error fetching time from worldtimeapi.org: {e}")
+        return None
 
-    res = requests.get(curl)
-    res.raise_for_status()
-    json = res.json()
-    world_api_date_time = datetime.datetime.fromisoformat(json["datetime"])
-    EXPIRE = datetime.datetime(2024, 12, 31, 23, 59, 59).astimezone()
-    if EXPIRE < world_api_date_time:
+
+def get_timeapi_time():
+    """Fetch current time using TimeAPI."""
+    try:
+        timeapi_url = "https://timeapi.io/api/Time/current/zone?timeZone=Asia/Karachi"
+        logging.debug(f"Fetching time from {timeapi_url}")
+        res = requests.get(timeapi_url, timeout=10)
+        res.raise_for_status()
+        json = res.json()
+        # Convert to offset-aware datetime
+        return datetime.datetime.fromisoformat(json["dateTime"])
+    except (requests.RequestException, KeyError, ValueError) as e:
+        logging.error(f"Error fetching time from TimeAPI: {e}")
+        return None
+
+
+def get_current_time():
+    """Fetches the current time using APIs, with fallback to local time."""
+    current_time = get_world_time()
+    if not current_time:
+        logging.error("worldtimeapi.org failed. Trying TimeAPI.")
+        current_time = get_timeapi_time()
+    if not current_time:
+        logging.error("Both APIs failed. Falling back to local system time.")
+        current_time = datetime.datetime.now(datetime.timezone.utc)  # Make offset-aware
+    return current_time
+
+
+def validate_license():
+    """Validates the program license based on expiration date."""
+    current_time = get_current_time()
+    logging.debug(f"Current time: {current_time}")
+
+    # Define license expiry date (offset-aware datetime)
+    EXPIRE = datetime.datetime(2024, 12, 31, 23, 59, 59, tzinfo=datetime.timezone.utc)
+
+    # Ensure comparison is valid
+    if current_time.tzinfo is None:
+        current_time = current_time.replace(tzinfo=datetime.timezone.utc)
+
+    # Check license validity
+    if EXPIRE < current_time:
         logging.error(
-            f"Your program license has expired. Please contact Khan to renew your license."
+            "\n\n\n\n\n\n\tYour program license has expired. Please contact Shahzaib KK +92 336 8311100 to renew your license."
         )
         sys.exit()
+    print("License is valid. Program continues...")
+
+
+if __name__ == "__main__":
+    validate_license()
+
     if len(sys.argv) > 1:
         if sys.argv[1] == "logo":
             watermark_text = "KHURAM TILES PESHAWAR"

@@ -50,7 +50,7 @@ if platform.system() == "Windows":
     # Check if it's Windows 11
     if platform.version().startswith("10.0.2"):
         # Adjust the path for Windows 11
-        desktop_path = Path(r"C:\Users\shahz\OneDrive\Desktop")
+        desktop_path = Path(Path.home() / r"OneDrive\Desktop")
     else:
         # For other Windows versions
         desktop_path = Path.home() / "Desktop"
@@ -405,6 +405,8 @@ if __name__ == "__main__":
             logging.error(f"Not Availble: {article_path.stem}")
             MISSING_FILES.add(article_path)
 
+    logging.info(f"\n\n\t Generating PDF Please Wait. . . . .")
+
     with open(MISSING_FILES_PATH, "w") as missing_report:
         missing_report.writelines(
             f"{missing_file.stem}\n" for missing_file in MISSING_FILES
@@ -418,4 +420,5 @@ if __name__ == "__main__":
             else:
                 create_pdf(compress_images_path, str(pdf_file))
                 watermark_text = ""
-logging.info(f"PDF was Created: {pdf_file}")
+
+logging.info(f"\n\n\n\n\t ****PDF was Created****\n: {pdf_file}")

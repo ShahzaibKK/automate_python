@@ -20,6 +20,8 @@ import datetime, time, requests
 import platform
 from reportlab.platypus import Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
+from configparser import ConfigParser
+import uuid, hashlib
 
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
@@ -32,7 +34,7 @@ Author: Shahzaib KK +92 336 8311100
 This Python script is designed to generate PDF documents from a collection of images. It is specifically tailored to the needs of Khuram Tiles, Peshawar, for creating product catalogs. The script compresses images, adds quantity information, and optionally includes a logo. It is intended to automate the process of generating these catalogs.
 
 Usage:
-- Ensure you have the required libraries installed (Pillow, openpyxl, reportlab).
+- Ensure you have the required libraries installed (Pillow, openpyxl, reportlab, requests).
 - Prepare your images and Excel file as per the specified format.
 - Run this script with the desired options to generate the PDF.
 
@@ -45,6 +47,33 @@ Note:
 This script is part of an automation project and is customized for a specific use case. It may require adjustments for different scenarios.
 """
 
+
+def verify_license():
+    # Get the machine's MAC address
+    mac_address = str(uuid.getnode())
+    secret = "M_AMIR"
+
+    # Hash the MAC address
+    current_hashed_mac = hashlib.sha256((mac_address + secret).encode()).hexdigest()
+
+    # Read the hashed MAC from the license file
+    try:
+        with open(r"D:\automate_python\KINGs_work\license.key", "r") as license_file:
+            stored_hashed_mac = license_file.read().strip()
+    except FileNotFoundError:
+        print("Error: license.key not found.")
+        sys.exit(1)
+
+    # Validate the hash
+    if current_hashed_mac != stored_hashed_mac:
+        print("Error: License validation failed. Unauthorized machine.")
+        sys.exit(1)
+
+    print("License validated successfully.")
+
+
+config = ConfigParser()
+config.read(r"D:\automate_python\KINGs_work\config.ini")
 # Check if the operating system is Windows
 if platform.system() == "Windows":
     # Check if it's Windows 11
@@ -61,9 +90,9 @@ if platform.system() == "Windows":
     COMPRESS_IMAGE_PATH = desktop_path / "DATA" / "compressed_images"
     COMPRESS_IMAGE_PATH.mkdir(exist_ok=True)
 
-    all_pics = Path(r"D:\Khuram Tiles\Main Files\Huamei Ceramics\MIX Pics")
+    all_pics = Path(config["Paths_bro"]["all_pics"])
     destination_path_comp = COMPRESS_IMAGE_PATH
-    KT_LOGO = r"D:\Khuram Tiles\Main Files\Huamei Ceramics\MIX Pics\1.jpg"
+    KT_LOGO = Path(config["Paths_bro"]["company_logo"])
     formated_date = datetime.date.today().strftime("%d-%m-%Y")
     pdf_file = ALL_RECORDS / f"Available_Stock_{formated_date}.pdf"
     # show_first = input("which articels you want to show first, e.g: 36DM, 40CP, 36HM etc: ")
@@ -382,6 +411,8 @@ def validate_license():
 
 
 if __name__ == "__main__":
+    # Call the function at the start of your script
+    verify_license()
     validate_license()
 
     if len(sys.argv) > 1:

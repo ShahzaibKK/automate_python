@@ -1,11 +1,17 @@
-import re, sys
-import openpyxl
-from openpyxl.worksheet.worksheet import Worksheet
+import os
+import time
+import re
+import sys
+import platform
+import datetime
+import uuid
+import hashlib
 import shutil
-from PIL import Image as PIL_Image
-from PIL import ImageDraw, ImageFont
 from pathlib import Path
-import logging
+from configparser import ConfigParser
+from PIL import Image as PIL_Image, ImageDraw, ImageFont
+from openpyxl import load_workbook
+from openpyxl.worksheet.worksheet import Worksheet
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import (
     SimpleDocTemplate,
@@ -13,15 +19,13 @@ from reportlab.platypus import (
     Table,
     TableStyle,
     PageBreak,
+    Paragraph,
 )
+from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
 from reportlab.lib.units import inch
-import datetime, time, requests
-import platform
-from reportlab.platypus import Paragraph
-from reportlab.lib.styles import getSampleStyleSheet
-from configparser import ConfigParser
-import uuid, hashlib
+import logging
+import requests
 
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
@@ -47,6 +51,10 @@ Note:
 This script is part of an automation project and is customized for a specific use case. It may require adjustments for different scenarios.
 """
 
+LICENSE_PATH = r"D:\automate_python\KINGs_work\license.key"
+CONFIG_PATH = r"D:\automate_python\KINGs_work\config.ini"
+WATERMARK_TEXT = "KHURAM TILES PESHAWAR"
+
 
 def verify_license():
     # Get the machine's MAC address
@@ -58,7 +66,7 @@ def verify_license():
 
     # Read the hashed MAC from the license file
     try:
-        with open(r"D:\automate_python\KINGs_work\license.key", "r") as license_file:
+        with open(LICENSE_PATH, "r") as license_file:
             stored_hashed_mac = license_file.read().strip()
     except FileNotFoundError:
         print("Error: license.key not found.")
@@ -72,8 +80,11 @@ def verify_license():
     print("License validated successfully.")
 
 
+if not Path(CONFIG_PATH).exists():
+    logging.error("Config file not found. Please ensure the path is correct.")
+    sys.exit(1)
 config = ConfigParser()
-config.read(r"D:\automate_python\KINGs_work\config.ini")
+config.read(CONFIG_PATH)
 # Check if the operating system is Windows
 if platform.system() == "Windows":
     # Check if it's Windows 11
@@ -90,9 +101,13 @@ if platform.system() == "Windows":
     COMPRESS_IMAGE_PATH = desktop_path / "DATA" / "compressed_images"
     COMPRESS_IMAGE_PATH.mkdir(exist_ok=True)
 
-    all_pics = Path(config["Paths_bro"]["all_pics"])
+    try:
+        all_pics = Path(config["Paths_bro"]["all_pics"])
+        KT_LOGO = Path(config["Paths_bro"]["company_logo"])
+    except KeyError as e:
+        logging.error(f"Key '{e.args[0]}' is missing in config.ini.")
+        sys.exit(1)
     destination_path_comp = COMPRESS_IMAGE_PATH
-    KT_LOGO = Path(config["Paths_bro"]["company_logo"])
     formated_date = datetime.date.today().strftime("%d-%m-%Y")
     pdf_file = ALL_RECORDS / f"Available_Stock_{formated_date}.pdf"
     # show_first = input("which articels you want to show first, e.g: 36DM, 40CP, 36HM etc: ")
@@ -124,7 +139,7 @@ time.sleep(2)
 
 def collect_articels():
     """Load Excel File And Store the articels in a set"""
-    wb = openpyxl.load_workbook(AVAILABLE_STOCK)
+    wb = load_workbook(AVAILABLE_STOCK)
     if len(sys.argv) > 2:
         if sys.argv[2] == "DM":
             article_regex = re.compile(r"\d{2}DM\d{3}")
@@ -157,7 +172,7 @@ def collect_qty():
     article_names = collect_articels()
 
     # Load the Excel workbook
-    wb = openpyxl.load_workbook(AVAILABLE_STOCK)
+    wb = load_workbook(AVAILABLE_STOCK)
     sheet: Worksheet = wb.active
 
     # Initialize a dictionary to store article names and their quantities
@@ -417,7 +432,7 @@ if __name__ == "__main__":
 
     if len(sys.argv) > 1:
         if sys.argv[1] == "logo":
-            watermark_text = "KHURAM TILES PESHAWAR"
+            watermark_text = WATERMARK_TEXT
         else:
             watermark_text = ""
 
@@ -447,7 +462,7 @@ if __name__ == "__main__":
         if len(sys.argv) > 1:
             if sys.argv[1] == "logo":
                 create_pdf(compress_images_path, str(pdf_file), KT_LOGO)
-                watermark_text = "KHURAM TILES PESHAWAR"
+                watermark_text = WATERMARK_TEXT
             else:
                 create_pdf(compress_images_path, str(pdf_file))
                 watermark_text = ""

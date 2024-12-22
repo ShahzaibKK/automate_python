@@ -1,4 +1,3 @@
-import os
 import time
 import re
 import sys
@@ -51,8 +50,8 @@ Note:
 This script is part of an automation project and is customized for a specific use case. It may require adjustments for different scenarios.
 """
 
-LICENSE_PATH = r"D:\automate_python\KINGs_work\license.key"
-CONFIG_PATH = r"D:\automate_python\KINGs_work\config.ini"
+LICENSE_PATH = r"D:\KK's\automate_python\KINGs_work\Office_license.key"
+CONFIG_PATH = r"D:\KK's\automate_python\KINGs_work\config.ini"
 WATERMARK_TEXT = "KHURAM TILES PESHAWAR"
 
 
@@ -69,22 +68,31 @@ def verify_license():
         with open(LICENSE_PATH, "r") as license_file:
             stored_hashed_mac = license_file.read().strip()
     except FileNotFoundError:
-        print("Error: license.key not found.")
+        logging.error("Error: license.key not found.")
+        sys.exit(1)
+    except Exception as e:
+        logging.error(f"Unexpected error while reading license file: {e}")
         sys.exit(1)
 
     # Validate the hash
     if current_hashed_mac != stored_hashed_mac:
-        print("Error: License validation failed. Unauthorized machine.")
+        logging.error("Error: License validation failed. Unauthorized machine.")
         sys.exit(1)
 
-    print("License validated successfully.")
+    logging.info("License validated successfully.")
 
 
 if not Path(CONFIG_PATH).exists():
     logging.error("Config file not found. Please ensure the path is correct.")
     sys.exit(1)
+
 config = ConfigParser()
-config.read(CONFIG_PATH)
+try:
+    config.read(CONFIG_PATH)
+except Exception as e:
+    logging.error(f"Unexpected error while reading config file: {e}")
+    sys.exit(1)
+
 # Check if the operating system is Windows
 if platform.system() == "Windows":
     # Check if it's Windows 11
@@ -288,25 +296,27 @@ def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
     }  # Add more categories as needed
 
     current_category = None
+    category_lookup = {key: category for key, category in categories.items()}
+
     for image_path in image_paths:
         pure: str = image_path.stem[11:]
         article_regex_pattern = rf"^{pure}(\w+)?(\d+)?$"
         article_regex = re.compile(article_regex_pattern)
 
         # Check if the current article belongs to a new category
-        for key, category_text in categories.items():
-            if pure.startswith(key):
-                if current_category != category_text:
-                    current_category = category_text
-                    # Add the category text to the elements
-                    if elements:
-                        elements.append(PageBreak())
-                    category_text = f"Category: {current_category}"
+        category_text = category_lookup.get(pure[:2])
+        if category_text and current_category != category_text:
+            current_category = category_text
+            # Add the category text to the elements
+            if elements:
+                elements.append(PageBreak())
+            category_text = f"Category: {current_category}"
 
-                    # Create a Paragraph for the category text
-                    styles = getSampleStyleSheet()
-                    category_paragraph = Paragraph(category_text, styles["Heading1"])
-                    elements.append(category_paragraph)
+            # Create a Paragraph for the category text
+            styles = getSampleStyleSheet()
+            category_paragraph = Paragraph(category_text, styles["Heading2"])
+            elements.append(category_paragraph)
+            logging.info(f"Added new category: {current_category}")
 
         # Create a list of flowables for this image and its corresponding table
         flowables = []

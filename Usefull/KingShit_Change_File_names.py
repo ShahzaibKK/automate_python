@@ -13,5 +13,5 @@ class ChangeNames:
             print(f"Renamed: {path} to {self.path / new_name}")
 
 
-oj1 = ChangeNames(r"D:\Khuram Tiles\Main Files\Huamei Ceramics\HM\HM12x24")
-oj1.change_first_prefixs("36HM")
+oj1 = ChangeNames(r"C:\Users\shahz\Downloads\ilovepdf_pages-to-jpg (1)")
+oj1.change_first_prefixs("M40HM")

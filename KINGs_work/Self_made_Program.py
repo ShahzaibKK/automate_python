@@ -52,7 +52,7 @@ This script is part of an automation project and is customized for a specific us
 
 LICENSE_PATH = r"D:\KK's\automate_python\KINGs_work\Office_license.key"
 CONFIG_PATH = r"D:\KK's\automate_python\KINGs_work\config.ini"
-WATERMARK_TEXT = "KHURAM TILES PESHAWAR"
+WATERMARK_TEXT = "King Khan Tiles Peshawar"
 
 
 def verify_license():
@@ -293,6 +293,10 @@ def create_pdf(image_paths: Path, output_pdf_path, logo_path=None):
         "40": "16x16 Glaze",
         "25": "10x20 Glaze",
         "M30": "12x12 Matt",
+        "M40": "16x16 Matt",
+        "M25": "10x20 Matt",
+        "60": "24x24 Glaze",
+        "612": "24x48 Glaze",
     }  # Add more categories as needed
 
     current_category = None
@@ -420,7 +424,7 @@ def validate_license():
     logging.debug(f"Current time: {current_time}")
 
     # Define license expiry date (offset-aware datetime)
-    EXPIRE = datetime.datetime(2024, 12, 31, 23, 59, 59, tzinfo=datetime.timezone.utc)
+    EXPIRE = datetime.datetime(2025, 12, 31, 23, 59, 59, tzinfo=datetime.timezone.utc)
 
     # Ensure comparison is valid
     if current_time.tzinfo is None:

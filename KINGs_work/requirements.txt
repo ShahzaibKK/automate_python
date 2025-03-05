@@ -2,3 +2,4 @@ openpyxl
 pillow
 reportlab
 requests
+pandas

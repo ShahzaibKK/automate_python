@@ -141,9 +141,13 @@ def collect_articles():
         if sys.argv[2] == "DM":
             article_regex = re.compile(r"\d{2}DM\d{3}")
         else:
-            article_regex = re.compile(r"(\w)?\d{2}\w{2}\d{3}")
+            article_regex = re.compile(
+                r"^(?:[A-Z]+)?\d{2,3}(?:[A-Z]{2})?\d{2,6}", re.IGNORECASE
+            )
     else:
-        article_regex = re.compile(r"(\w)?\d{2}\w{2}\d{3}")
+        article_regex = re.compile(
+            r"^(?:[A-Z]+)?\d{2,3}(?:[A-Z]{2})?\d{2,6}", re.IGNORECASE
+        )
 
     sheet: Worksheet = wb.active  # Using the active worksheet
 
@@ -276,7 +280,9 @@ def create_pdf(image_path: Path, output_pdf_path, logo_path=None):
         article_regex_pattern = rf"^{pure_str}(\w+)?(\d+)?$"
         article_regex = re.compile(article_regex_pattern)
 
-        category_text = category_lookup.get(pure_str[:2])
+        category_text = category_lookup.get(pure_str[:3])  # Try first 3 chars
+        if not category_text:
+            category_text = category_lookup.get(pure_str[:2])
         if category_text and current_category != category_text:
             current_category = category_text
             if elements:
